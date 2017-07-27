@@ -2,25 +2,21 @@
 package main
 
 import (
-	"crypto/sha1"
+	"bytes"
 	"fmt"
-	"io"
-	"sort"
-	"strings"
 
-	"encoding/json"
 	"encoding/xml"
 	"io/ioutil"
 	"net/http"
 	"time"
 
+	"github.com/chinasarft/wechat/mp"
+	"github.com/chinasarft/wechat/mp/menu"
+	"github.com/chinasarft/wechat/mp/token"
+
 	"github.com/gin-gonic/gin"
 )
 
-type WechatAk struct {
-	AccessToken string `json:"access_token"`
-	ExpiresIn   int    `json:"expires_in"`
-}
 type WechatErr struct {
 	ErrCode int    `json:"errcode"`
 	ErrMsg  string `json:"errmsg"`
@@ -43,28 +39,15 @@ type TextResponseBody struct {
 	Content      string
 }
 
-//验证微信来源
-func SignAccount(token, timestamp, nonce, signature, echostr string) bool {
-	s := []string{token, timestamp, nonce}
-	sort.Sort(sort.StringSlice(s)) //将token、timestamp、nonce三个参数进行字典序排序
-	s0 := strings.Join(s, "")      //将三个参数字符串拼接成一个字符串
-	t := sha1.New()                //sha1加密
-	io.WriteString(t, s0)
-	s1 := fmt.Sprintf("%x", t.Sum(nil))
-	if signature == s1 { //与signature对比
-		return true
-	}
-	return false
-}
-
-func GetWeChatCore(c *gin.Context) {
+func VlidateWechatServer(c *gin.Context) {
 	signature := c.Query("signature")
 	timestamp := c.Query("timestamp")
 	nonce := c.Query("nonce")
 	echostr := c.Query("echostr")
 
 	//验证微信连接
-	if SignAccount("6f68fe5452a9fee642d959410ab455af", timestamp, nonce, signature, echostr) {
+
+	if mp.ValidateWechatServer("6f68fe5452a9fee642d959410ab455af", timestamp, nonce, signature, echostr) {
 		c.String(200, echostr)
 	}
 }
@@ -96,31 +79,70 @@ func TextMsg(c *gin.Context) {
 	}
 }
 
-func GetWechatAccessToken() {
-	url := "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wxc013571e83b295ed&secret=2d30a2a5a835bd33825c44c1c4da468b"
-	resp, err := http.Get(url)
+func main() {
+	token.Init()
+	engine := gin.New()
+	engine.Static("/static", "static")
+	weChatCoreGroupR := engine.Group("/wechat")
+	{
+		weChatCoreGroupR.GET("/connect", VlidateWechatServer)
+		weChatCoreGroupR.POST("/connect", TextMsg)
+	}
+
+	mygroup := engine.Group("/test")
+	{
+		mygroup.POST("/menu", freshMenu)
+		mygroup.GET("/token", getToken)
+	}
+	startServe(engine)
+}
+
+func getToken(c *gin.Context) {
+	c.String(http.StatusOK, "token:"+token.GetAccessToken()+"\n")
+}
+func freshMenu(c *gin.Context) {
+	m := menu.NewMenu()
+
+	clickButton := menu.NewClickButton("点击1", "key1")
+	m.AddButton(clickButton)
+
+	locationButton := menu.NewLocationSelectButton("位置2", "key2")
+	m.AddButton(locationButton)
+
+	menuButton := menu.NewMenuButton("菜单")
+
+	clickButton3_1 := menu.NewClickButton("点击3_1", "key3_1")
+	menuButton.AddSubButton(clickButton3_1)
+	scpButton3_2 := menu.NewScancodePushButton("扫码3_2", "key3_2")
+	menuButton.AddSubButton(scpButton3_2)
+	viewButton3_3 := menu.NewViewButton("跳转3_3", "www.bing.com")
+	menuButton.AddSubButton(viewButton3_3)
+
+	m.AddMenuButton(menuButton)
+
+	text, err := m.GetJsonByte()
 	if err != nil {
+		fmt.Println("marshal error")
 		return
 	}
+
+	resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/menu/create?access_token="+token.GetAccessToken(),
+		"application/json", bytes.NewReader(text))
+	if err != nil {
+		fmt.Println(err)
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		// handle error
+		c.String(http.StatusBadRequest, err.Error())
+		return
 	}
-	ak := WechatAk{}
-	err = json.Unmarshal(body, &ak)
-	if err != nil {
-		fmt.Println(ak)
-	}
-}
 
-func main() {
-	engine := gin.New()
-	weChatCoreGroupR := engine.Group("/wechat")
-	{
-		weChatCoreGroupR.GET("/connect", GetWeChatCore)
-		weChatCoreGroupR.POST("/connect", TextMsg)
-	}
-	startServe(engine)
+	fmt.Println(string(body))
 
 }
 
