@@ -46,9 +46,8 @@ func loadConfig() {
 	if err != nil {
 		panic(err)
 	}
-
 	if time.Now().Unix() > config.Ak.ExpireTime {
-		GetWechatAccessToken()
+		UPdateWechatAccessToken()
 	}
 	refreshOnce.Do(refreshToken)
 }
@@ -66,14 +65,14 @@ func refreshToken() {
 		for {
 			select {
 			case <-timer.C:
-				GetWechatAccessToken()
+				UPdateWechatAccessToken()
 				timer.Reset(time.Second * time.Duration(config.Ak.ExpiresIn))
 			}
 		}
 	}()
 }
 
-func GetWechatAccessToken() {
+func UPdateWechatAccessToken() {
 	mutex.Lock()
 	defer mutex.Unlock()
 

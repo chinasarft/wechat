@@ -64,7 +64,7 @@ func (this *Menu) AddMenuButton(menuButton *MenuButton) error {
 	return nil
 }
 
-func (this *Menu) GetJsonByte() ([]byte, err) {
+func (this *Menu) GetJsonByte() ([]byte, error) {
 	return json.Marshal(this)
 }
 
