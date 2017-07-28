@@ -5,13 +5,12 @@ import (
 	"bytes"
 	"fmt"
 
-	"encoding/xml"
 	"io/ioutil"
 	"net/http"
-	"time"
 
 	"github.com/chinasarft/wechat/mp"
 	"github.com/chinasarft/wechat/mp/menu"
+	"github.com/chinasarft/wechat/mp/message"
 	"github.com/chinasarft/wechat/mp/token"
 
 	"github.com/gin-gonic/gin"
@@ -21,25 +20,8 @@ type WechatErr struct {
 	ErrCode int    `json:"errcode"`
 	ErrMsg  string `json:"errmsg"`
 }
-type TextRequestBody struct {
-	XMLName      xml.Name `xml:"xml"`
-	ToUserName   string
-	FromUserName string
-	CreateTime   time.Duration
-	MsgType      string
-	Content      string
-	MsgId        int
-}
-type TextResponseBody struct {
-	XMLName      xml.Name `xml:"xml"`
-	ToUserName   string
-	FromUserName string
-	CreateTime   time.Duration
-	MsgType      string
-	Content      string
-}
 
-func VlidateWechatServer(c *gin.Context) {
+func ValidateWechatServer(c *gin.Context) {
 	signature := c.Query("signature")
 	timestamp := c.Query("timestamp")
 	nonce := c.Query("nonce")
@@ -52,41 +34,66 @@ func VlidateWechatServer(c *gin.Context) {
 	}
 }
 
-func makeTextResponseBody(fromUserName, toUserName, content string) ([]byte, error) {
-	textResponseBody := &TextResponseBody{}
-	textResponseBody.FromUserName = fromUserName
-	textResponseBody.ToUserName = toUserName
-	textResponseBody.MsgType = "text"
-	textResponseBody.Content = content
-	textResponseBody.CreateTime = time.Duration(time.Now().Unix())
-	return xml.MarshalIndent(textResponseBody, " ", "  ")
+func textMsgHandler(r *message.TextRequest) *message.TextResponse {
+	return r.NewResponse("text response:" + r.Content)
+}
+func locationMsgHandler(r *message.LocationRequest) *message.LocationResponse {
+	return r.NewResponse("now you were stand at:" + r.Label)
+}
+func imageMsgHandler(r *message.ImageRequest) *message.ImageResponse {
+	return r.NewResponse("your image at:" + r.PicUrl)
+}
+func voiceMsgHandler(r *message.VoiceRequest) *message.VoiceResponse {
+	return r.NewResponse("your voice id:" + r.MediaId)
+}
+func videoMsgHandler(r *message.VideoRequest) *message.VideoResponse {
+	return r.NewResponse("your vidoe id:" + r.MediaId + " " + r.ThumbMediaId)
+}
+func shortvideoMsgHandler(r *message.ShortvideoRequest) *message.ShortvideoResponse {
+	return r.NewResponse("your shortvidoe id:" + r.MediaId + " " + r.ThumbMediaId)
+}
+func linkMsgHandler(r *message.LinkRequest) *message.LinkResponse {
+	return r.NewResponse("your link tile:" + r.Tile + " " + r.Description)
 }
 
-func TextMsg(c *gin.Context) {
+func eventClickHandler(r *message.EventClickRequest) *message.EventClickResponse {
+	return r.NewResponse("your key:" + r.EventKey)
+}
+func eventViewHandler(r *message.EventViewRequest) *message.EventViewResponse {
+	return r.NewResponse("your url:" + r.EventKey)
+}
+func eventLocationHandler(r *message.EventLocationRequest) *message.EventLocationResponse {
+	return r.NewResponse("your eventlo:" + r.Latitude)
+}
+func eventLocationSelectHandler(r *message.EventLocationSelectRequest) *message.EventLocationSelectResponse {
+	return r.NewResponse("your els:" + r.SendLocationInfo.Label + " " + r.SendLocationInfo.Poiname)
+}
 
-	body, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		// handle error
-		fmt.Println("text msg fail")
-	}
-	requestBody := &TextRequestBody{}
-	xml.Unmarshal(body, requestBody)
-	fmt.Println(requestBody)
-	respContent, err := makeTextResponseBody(requestBody.ToUserName, requestBody.FromUserName, "welcome to yimi")
-	if err == nil {
-		fmt.Println("write response")
-		c.Data(http.StatusOK, "text/xml", respContent)
-	}
+func MessageGateway(c *gin.Context) {
+	message.Handle(c.Writer, c.Request)
 }
 
 func main() {
 	token.Init()
+	message.SetTextMessageHandler(textMsgHandler)
+	message.SetLocationMessageHandler(locationMsgHandler)
+	message.SetImageMessageHandler(imageMsgHandler)
+	message.SetVoiceMessageHandler(voiceMsgHandler)
+	message.SetVideoMessageHandler(videoMsgHandler)
+	message.SetShortvideoMessageHandler(shortvideoMsgHandler)
+	message.SetLinkMessageHandler(linkMsgHandler)
+
+	message.SetEventLocationMessageHandler(eventLocationHandler)
+	message.SetEventClickMessageHandler(eventClickHandler)
+	message.SetEventViewMessageHandler(eventViewHandler)
+	message.SetEventLocationSelectMessageHandler(eventLocationSelectHandler)
+
 	engine := gin.New()
 	engine.Static("/static", "static")
 	weChatCoreGroupR := engine.Group("/wechat")
 	{
-		weChatCoreGroupR.GET("/connect", VlidateWechatServer)
-		weChatCoreGroupR.POST("/connect", TextMsg)
+		weChatCoreGroupR.GET("/connect", ValidateWechatServer)
+		weChatCoreGroupR.POST("/connect", MessageGateway)
 	}
 
 	mygroup := engine.Group("/test")
