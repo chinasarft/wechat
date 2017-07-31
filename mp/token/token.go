@@ -1,6 +1,7 @@
 package token
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -9,7 +10,10 @@ import (
 )
 
 const (
-	configFile = "config.json"
+	configFile                    = "config.json"
+	WECHAT_AES_KEY_LENGTH         = 43
+	WECHAT_VALIDATE_TOKEN_MIN_LEN = 3
+	WECHAT_VALIDATE_TOKEN_MAX_LEN = 32
 )
 
 type App struct {
@@ -24,8 +28,12 @@ type WechatAk struct {
 }
 
 type Config struct {
-	App App      `json:"app"`
-	Ak  WechatAk `json:"ak"`
+	App          App      `json:"app"`
+	Ak           WechatAk `json:"ak"`
+	Base64AesKey string   `json:"aes_key"`
+	BinAesKey    []byte   `json:-`
+	//https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421135319
+	ValidateToken string `json:"validate_token"`
 }
 
 var initOnce sync.Once
@@ -34,10 +42,24 @@ var mutex sync.Mutex
 var config Config
 
 func Init() {
-	initOnce.Do(loadConfig)
+	initOnce.Do(initConfig)
 }
 
-func loadConfig() {
+func initConfig() {
+
+	loadConfigFile()
+
+	checkAndDecodeAesKey()
+
+	checkValidateToken()
+
+	if isTokenExpire() {
+		UPdateWechatAccessToken()
+	}
+	refreshOnce.Do(refreshToken)
+}
+
+func loadConfigFile() {
 	data, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		panic(err)
@@ -46,16 +68,53 @@ func loadConfig() {
 	if err != nil {
 		panic(err)
 	}
-	if time.Now().Unix() > config.Ak.ExpireTime {
-		UPdateWechatAccessToken()
+}
+
+func checkAndDecodeAesKey() {
+	if len(config.Base64AesKey) != WECHAT_AES_KEY_LENGTH {
+		panic("aes key wrong length")
 	}
-	refreshOnce.Do(refreshToken)
+	aesKey, err := base64.StdEncoding.DecodeString(config.Base64AesKey + "=")
+	if err != nil {
+		panic(err)
+	}
+	config.BinAesKey = aesKey
+}
+
+func checkValidateToken() {
+	validateTokenLen := len(config.ValidateToken)
+	if validateTokenLen < WECHAT_VALIDATE_TOKEN_MIN_LEN ||
+		validateTokenLen > WECHAT_VALIDATE_TOKEN_MAX_LEN {
+		panic("validate token wrong length")
+	}
+}
+
+func isTokenExpire() bool {
+	return time.Now().Unix() > config.Ak.ExpireTime
 }
 
 func GetAccessToken() string {
 	mutex.Lock()
 	defer mutex.Unlock()
 	return config.Ak.AccessToken
+}
+
+func GetAesKey() []byte {
+	mutex.Lock()
+	defer mutex.Unlock()
+	return config.BinAesKey
+}
+
+func GetValidateToken() string {
+	mutex.Lock()
+	defer mutex.Unlock()
+	return config.ValidateToken
+}
+
+func GetAppId() string {
+	mutex.Lock()
+	defer mutex.Unlock()
+	return config.App.AppId
 }
 
 func refreshToken() {
