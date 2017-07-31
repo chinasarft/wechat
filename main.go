@@ -29,7 +29,7 @@ func ValidateWechatServer(c *gin.Context) {
 
 	//验证微信连接
 
-	if mp.ValidateWechatServer("6f68fe5452a9fee642d959410ab455af", timestamp, nonce, signature, echostr) {
+	if mp.ValidateWechatServer(token.GetValidateToken(), timestamp, nonce, signature, echostr) {
 		c.String(200, echostr)
 	}
 }
