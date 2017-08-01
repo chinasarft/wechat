@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/chinasarft/wechat/mp"
 	"github.com/chinasarft/wechat/mp/menu"
 	"github.com/chinasarft/wechat/mp/message"
 	"github.com/chinasarft/wechat/mp/token"
@@ -22,16 +21,13 @@ type WechatErr struct {
 }
 
 func ValidateWechatServer(c *gin.Context) {
-	signature := c.Query("signature")
-	timestamp := c.Query("timestamp")
-	nonce := c.Query("nonce")
-	echostr := c.Query("echostr")
 
-	//验证微信连接
-
-	if mp.ValidateWechatServer(token.GetValidateToken(), timestamp, nonce, signature, echostr) {
-		c.String(200, echostr)
+	resp, err := message.ServerAuthentication(c.Request)
+	if err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
 	}
+	c.Data(http.StatusOK, "", resp)
 }
 
 func textMsgHandler(r *message.TextRequest) *message.TextResponse {
@@ -70,7 +66,12 @@ func eventLocationSelectHandler(r *message.EventLocationSelectRequest) *message.
 }
 
 func MessageGateway(c *gin.Context) {
-	message.Handle(c.Writer, c.Request)
+	resp, err := message.HandleMessage(c.Writer, c.Request)
+	if err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	c.Data(http.StatusOK, "", resp)
 }
 
 func main() {
