@@ -8,10 +8,16 @@ import (
 	"github.com/chinasarft/wechat/mp/token"
 )
 
+type MixMenu struct {
+	Buttons   []*Button  `json:"button,omitempty"`
+	MatchRule *MatchRule `json:"matchrule,omitempty"` // 只在菜单查询接口返回的conditinalmenu包含这个字段
+	MenuId    int64      `json:"menuid,omitempty"`    // 有个性化菜单时查询接口返回值包含这个字段
+}
+
 // TODO 可能对该struct需要添加一些方法
 type RetrieveMenu struct {
-	Normal     Menu    `json:"menu,omitempty"`
-	Conditinal []*Menu `json:"conditionalmenu,omitempty"`
+	Normal     MixMenu    `json:"menu,omitempty"`
+	Conditinal []*MixMenu `json:"conditionalmenu,omitempty"`
 }
 
 func GetMenu() (*RetrieveMenu, error) {
