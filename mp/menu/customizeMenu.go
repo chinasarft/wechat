@@ -1,8 +1,16 @@
 package menu
 
 import (
+	"fmt"
+
+	"bytes"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
+	"net/http"
+
+	"github.com/chinasarft/wechat/mp/message"
+	"github.com/chinasarft/wechat/mp/token"
 )
 
 const (
@@ -65,7 +73,41 @@ func (this *Menu) AddMenuButton(menuButton *MenuButton) error {
 }
 
 func (this *Menu) GetJsonByte() ([]byte, error) {
-	return json.Marshal(this)
+	return json.MarshalIndent(this, "", "\t")
+}
+
+func (this *Menu) Submit() error {
+
+	text, err := this.GetJsonByte()
+	if err != nil {
+		return err
+	}
+
+	accessToken := token.GetAccessToken()
+	resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/menu/create?access_token="+accessToken,
+		"application/json", bytes.NewReader(text))
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+	if err != nil {
+		return err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	result := &message.RequstWechatResult{}
+	if err = json.Unmarshal(body, result); err != nil {
+		return err
+	}
+	if result.Errcode != 0 {
+		// TODO just return ErrMsg?
+		return fmt.Errorf(string(body))
+	}
+	return nil
+
 }
 
 func NewClickButton(name, key string) *Button {

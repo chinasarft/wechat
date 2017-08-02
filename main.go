@@ -2,23 +2,17 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 
-	"io/ioutil"
 	"net/http"
 
 	"github.com/chinasarft/wechat/mp/menu"
 	"github.com/chinasarft/wechat/mp/message"
 	"github.com/chinasarft/wechat/mp/token"
 
+	"github.com/chinasarft/wechat/lib/flags"
 	"github.com/gin-gonic/gin"
 )
-
-type WechatErr struct {
-	ErrCode int    `json:"errcode"`
-	ErrMsg  string `json:"errmsg"`
-}
 
 func ValidateWechatServer(c *gin.Context) {
 
@@ -76,6 +70,14 @@ func MessageGateway(c *gin.Context) {
 
 func main() {
 	token.Init()
+	if flags.IsTest() {
+		freshMenu()
+		m, err := menu.GetMenu()
+		if err == nil {
+			fmt.Printf("%+v\n", m)
+		}
+		return
+	}
 	message.SetTextMessageHandler(textMsgHandler)
 	message.SetLocationMessageHandler(locationMsgHandler)
 	message.SetImageMessageHandler(imageMsgHandler)
@@ -96,19 +98,13 @@ func main() {
 		weChatCoreGroupR.GET("/connect", ValidateWechatServer)
 		weChatCoreGroupR.POST("/connect", MessageGateway)
 	}
-
-	mygroup := engine.Group("/test")
-	{
-		mygroup.POST("/menu", freshMenu)
-		mygroup.GET("/token", getToken)
-	}
 	startServe(engine)
 }
 
-func getToken(c *gin.Context) {
-	c.String(http.StatusOK, "token:"+token.GetAccessToken()+"\n")
+func getToken() {
+	fmt.Println(http.StatusOK, "token:"+token.GetAccessToken()+"\n")
 }
-func freshMenu(c *gin.Context) {
+func freshMenu() {
 	m := menu.NewMenu()
 
 	clickButton := menu.NewClickButton("点击1", "key1")
@@ -117,41 +113,23 @@ func freshMenu(c *gin.Context) {
 	locationButton := menu.NewLocationSelectButton("位置2", "key2")
 	m.AddButton(locationButton)
 
-	menuButton := menu.NewMenuButton("菜单")
+	menuButton := menu.NewMenuButton("菜单1")
 
 	clickButton3_1 := menu.NewClickButton("点击3_1", "key3_1")
 	menuButton.AddSubButton(clickButton3_1)
 	scpButton3_2 := menu.NewScancodePushButton("扫码3_2", "key3_2")
 	menuButton.AddSubButton(scpButton3_2)
-	viewButton3_3 := menu.NewViewButton("跳转3_3", "www.bing.com")
+	viewButton3_3 := menu.NewViewButton("跳转3_3", "http://ec2-13-112-47-201.ap-northeast-1.compute.amazonaws.com/static/a.html")
 	menuButton.AddSubButton(viewButton3_3)
 
 	m.AddMenuButton(menuButton)
 
-	text, err := m.GetJsonByte()
-	if err != nil {
-		fmt.Println("marshal error")
-		return
-	}
-
-	resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/menu/create?access_token="+token.GetAccessToken(),
-		"application/json", bytes.NewReader(text))
+	err := m.Submit()
 	if err != nil {
 		fmt.Println(err)
-		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		// handle error
-		c.String(http.StatusBadRequest, err.Error())
-		return
-	}
-
-	fmt.Println(string(body))
-
+	fmt.Println("freshmenu ok")
 }
 
 func startServe(engine *gin.Engine) error {
