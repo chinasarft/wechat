@@ -1,34 +1,38 @@
 package flags
 
 import (
-	"github.com/chinasarft/yimi/lib/logger"
+	"fmt"
+	"os"
+	"strconv"
+
 	goflags "github.com/jessevdk/go-flags"
 )
 
 type commanLineArgs struct {
-	Verbose  []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
-	Host     string `short:"h" long:"host" description:"host to bind"`
-	Port     string `short:"p" long:"port" description:"port to listen"`
-	CertPath string `short:"c" long:"cert" description:"Specify Cert File Path for HTTPS connections"`
-	KeyPath  string `short:"k" long:"key" description:"Specify Key File Path for HTTPS connections"`
+	Test         bool   `short:"t" long:"test" description:""`
+	Verbose      []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
+	Host         string `short:"h" long:"host" description:"host to bind"`
+	Port         int    `short:"p" long:"port" description:"port to listen" default:"80"`
+	CertFilePath string `short:"c" long:"cert" description:"Specify Cert File Path for HTTPS connections"`
+	KeyFilePath  string `short:"k" long:"key" description:"Specify Key File Path for HTTPS connections"`
 }
 
-var Flags *FlagsStruct
+var Flags *commanLineArgs
 
 func init() {
 	var err error
 	Flags, err = parseFlags()
 	if err != nil {
-		logger.EXIT()
+		panic(err)
 	}
 	err = check()
 	if err != nil {
-		exitutils.Failureln(err)
+		panic(err)
 	}
 }
 
-func parseFlags() (*FlagsStruct, error) {
-	var flags FlagsStruct
+func parseFlags() (*commanLineArgs, error) {
+	flags := commanLineArgs{}
 	parser := goflags.NewParser(&flags, goflags.Default|goflags.IgnoreUnknown)
 	args, err := parser.ParseArgs(os.Args)
 	if err != nil {
@@ -106,4 +110,8 @@ func DoHTTPs() (isHTTPs bool, certFilePath string, keyFilePath string) {
 	certFilePath = Flags.CertFilePath
 	keyFilePath = Flags.KeyFilePath
 	return
+}
+
+func IsTest() bool {
+	return Flags.Test
 }
