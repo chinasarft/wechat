@@ -13,7 +13,7 @@ func TestDefaultRotate(t *testing.T) {
 	}
 	SetRotateSize(8096)
 	for i := 0; i < 1000; i++ {
-		Info(strconv.Itoa(i), xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+		Info(strconv.Itoa(i), "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 	}
 	Close()
 }
