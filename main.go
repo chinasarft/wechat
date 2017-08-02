@@ -93,6 +93,9 @@ func main() {
 	case "cMenu":
 		addConditionalMenu()
 		return
+	case "dcMenu":
+		deleteConditionalMenu()
+		return
 	}
 
 	message.SetTextMessageHandler(textMsgHandler)
@@ -116,6 +119,28 @@ func main() {
 		weChatCoreGroupR.POST("/connect", MessageGateway)
 	}
 	startServe(engine)
+}
+
+func deleteConditionalMenu() {
+	menus, err := menu.GetMenu()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	mids := menus.GetConditionalMenuId()
+	l := len(mids)
+	if l < 2 {
+		fmt.Println("conditional menu less than 2. not delete")
+		return
+	}
+
+	err = menu.DeleteConditionalMenu(mids[l-1])
+	if err != nil {
+		fmt.Println("delete conditional menu err:", err.Error())
+		return
+	}
+	fmt.Println("delete conditional menu ok")
 }
 
 func getToken() {

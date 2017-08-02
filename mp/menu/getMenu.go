@@ -20,6 +20,13 @@ type RetrieveMenu struct {
 	Conditinal []*MixMenu `json:"conditionalmenu,omitempty"`
 }
 
+func (this *RetrieveMenu) GetConditionalMenuId() (mids []*MenuId) {
+	for _, cMenu := range this.Conditinal {
+		mids = append(mids, &MenuId{cMenu.MenuId})
+	}
+	return
+}
+
 func GetMenu() (*RetrieveMenu, error) {
 	accessToken := token.GetAccessToken()
 	resp, err := http.Get("https://api.weixin.qq.com/cgi-bin/menu/get?access_token=" + accessToken)
