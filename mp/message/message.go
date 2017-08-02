@@ -67,6 +67,11 @@ const (
 	EventLocationSelect = "location_select"
 )
 
+type RequstWechatResult struct {
+	Errcode int    `json:"errcode"`
+	Errmsg  string `json:"errmsg"`
+}
+
 //MixMessage 存放所有微信发送过来的消息和事件
 type MixMessage struct {
 	MessageHeader
