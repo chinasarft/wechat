@@ -70,14 +70,31 @@ func MessageGateway(c *gin.Context) {
 
 func main() {
 	token.Init()
-	if flags.IsTest() {
+	fmt.Println(flags.GetTest())
+	switch flags.GetTest() {
+	case "freshMenu":
 		freshMenu()
 		m, err := menu.GetMenu()
 		if err == nil {
 			fmt.Printf("%+v\n", m)
 		}
 		return
+	case "getMenu":
+		m, err := menu.GetMenu()
+		if err == nil {
+			fmt.Printf("%+v\n", m)
+		} else {
+			fmt.Println("getMenu err:", err.Error())
+		}
+		return
+	case "getToken":
+		getToken()
+		return
+	case "cMenu":
+		addConditionalMenu()
+		return
 	}
+
 	message.SetTextMessageHandler(textMsgHandler)
 	message.SetLocationMessageHandler(locationMsgHandler)
 	message.SetImageMessageHandler(imageMsgHandler)
@@ -104,6 +121,7 @@ func main() {
 func getToken() {
 	fmt.Println(http.StatusOK, "token:"+token.GetAccessToken()+"\n")
 }
+
 func freshMenu() {
 	m := menu.NewMenu()
 
@@ -130,6 +148,38 @@ func freshMenu() {
 		return
 	}
 	fmt.Println("freshmenu ok")
+}
+
+func addConditionalMenu() {
+	m := menu.NewConditionalMenu()
+
+	clickButton := menu.NewClickButton("点击c1", "keyc1")
+	m.AddButton(clickButton)
+
+	locationButton := menu.NewLocationSelectButton("位置c2", "keyc2")
+	m.AddButton(locationButton)
+
+	menuButton := menu.NewMenuButton("菜单c2")
+
+	clickButton3_1 := menu.NewClickButton("点击c3_1", "keyc3_1")
+	menuButton.AddSubButton(clickButton3_1)
+	scpButton3_2 := menu.NewScancodePushButton("扫码c3_2", "keyc3_2")
+	menuButton.AddSubButton(scpButton3_2)
+	viewButton3_3 := menu.NewViewButton("跳转c3_3", "http://ec2-13-112-47-201.ap-northeast-1.compute.amazonaws.com/static/a.html")
+	menuButton.AddSubButton(viewButton3_3)
+
+	m.AddMenuButton(menuButton)
+
+	rule := menu.NewMatchRule()
+	rule.SetSexToMale()
+	m.AddMatchRule(rule)
+
+	mid, err := m.Submit()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("freshmenu ok:", mid.MenuId)
 }
 
 func startServe(engine *gin.Engine) error {

@@ -9,7 +9,7 @@ import (
 )
 
 type commanLineArgs struct {
-	Test         bool   `short:"t" long:"test" description:""`
+	Test         string `short:"t" long:"test" description:"test method"`
 	Verbose      []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
 	Host         string `short:"h" long:"host" description:"host to bind"`
 	Port         int    `short:"p" long:"port" description:"port to listen" default:"80"`
@@ -112,6 +112,6 @@ func DoHTTPs() (isHTTPs bool, certFilePath string, keyFilePath string) {
 	return
 }
 
-func IsTest() bool {
+func GetTest() string {
 	return Flags.Test
 }
