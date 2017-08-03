@@ -111,7 +111,7 @@ type ScanCodeInfo struct {
 }
 
 type SendPicsInfo struct {
-	Count   int32      `xml:"Count"`
+	Count   int        `xml:"Count"`
 	PicList []EventPic `xml:"PicList>item"`
 }
 
@@ -328,6 +328,19 @@ func (this *MixMessage) EventScancode_waitmsgRequestHandler(eventScancodeWaitmsg
 		return eventScancodeWaitmsgMessageHandler(eventScancodeWaitmsgRequest)
 	}
 	return &EventScancodeWaitmsgResponse{}
+}
+
+func (this *MixMessage) GetEventPic_sysphotoRequest() *EventPicSysphotoRequest {
+	eventPicSysphotoRequest := &EventPicSysphotoRequest{this.MessageHeader, this.Event, this.EventKey, this.SendPicsInfo}
+	return eventPicSysphotoRequest
+}
+
+func (this *MixMessage) EventPic_sysphotoRequestHandler(eventPicSysphotoRequestI interface{}) *EventPicSysphotoResponse {
+	eventPicSysphotoRequest := eventPicSysphotoRequestI.(*EventPicSysphotoRequest)
+	if eventPicSysphotoMessageHandler != nil {
+		return eventPicSysphotoMessageHandler(eventPicSysphotoRequest)
+	}
+	return &EventPicSysphotoResponse{}
 }
 
 func (this *MixMessage) GetLocationRequest() *LocationRequest {

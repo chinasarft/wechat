@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"net/http"
+	"strconv"
 
 	"github.com/chinasarft/wechat/mp/menu"
 	"github.com/chinasarft/wechat/mp/message"
@@ -64,6 +65,9 @@ func eventScancodePushHandler(r *message.EventScancodePushRequest) *message.Even
 func eventScancodeWaitmsgHandler(r *message.EventScancodeWaitmsgRequest) *message.EventScancodeWaitmsgResponse {
 	return r.NewResponse("your esw:" + r.ScanCodeInfo.ScanType + " " + r.ScanCodeInfo.ScanResult)
 }
+func eventPicSysphotoHandler(r *message.EventPicSysphotoRequest) *message.EventPicSysphotoResponse {
+	return r.NewResponse("your eps:" + strconv.Itoa(r.SendPicsInfo.Count) + " " + r.SendPicsInfo.PicList[0].PicMd5Sum)
+}
 
 func MessageGateway(c *gin.Context) {
 	resp, err := message.HandleMessage(c.Writer, c.Request)
@@ -118,6 +122,7 @@ func main() {
 	message.SetEventLocationSelectMessageHandler(eventLocationSelectHandler)
 	message.SetEventScancodePushMessageHandler(eventScancodePushHandler)
 	message.SetEventScancodeWaitmsgMessageHandler(eventScancodeWaitmsgHandler)
+	message.SetEventPicSysphotoMessageHandler(eventPicSysphotoHandler)
 
 	engine := gin.New()
 	engine.Static("/static", "static")
