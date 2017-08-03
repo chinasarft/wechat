@@ -252,6 +252,19 @@ func (this *MixMessage) LinkRequestHandler(linkRequestI interface{}) *LinkRespon
 	return &LinkResponse{}
 }
 
+func (this *MixMessage) GetEventScanRequest() *EventScanRequest {
+	eventScanRequest := &EventScanRequest{this.MessageHeader, this.Event, this.EventKey, this.Ticket}
+	return eventScanRequest
+}
+
+func (this *MixMessage) EventScanRequestHandler(eventScanRequestI interface{}) *EventScanResponse {
+	eventScanRequest := eventScanRequestI.(*EventScanRequest)
+	if eventScanMessageHandler != nil {
+		return eventScanMessageHandler(eventScanRequest)
+	}
+	return &EventScanResponse{}
+}
+
 func (this *MixMessage) GetEventClickRequest() *EventClickRequest {
 	eventClickRequest := &EventClickRequest{this.MessageHeader, this.Event, this.EventKey}
 	return eventClickRequest

@@ -50,6 +50,9 @@ func linkMsgHandler(r *message.LinkRequest) *message.LinkResponse {
 func eventClickHandler(r *message.EventClickRequest) *message.EventClickResponse {
 	return r.NewResponse("your key:" + r.EventKey)
 }
+func eventScanHandler(r *message.EventScanRequest) *message.EventScanResponse {
+	return r.NewResponse("event scan:" + string(r.Event) + r.EventKey + r.Ticket)
+}
 func eventSubscribeHandler(r *message.EventSubscribeRequest) *message.EventSubscribeResponse {
 	if r.EventKey == "" {
 		return r.NewResponse("subscribe:" + string(r.Event))
@@ -133,6 +136,8 @@ func main() {
 	message.SetLinkMessageHandler(linkMsgHandler)
 
 	message.SetEventLocationMessageHandler(eventLocationHandler)
+
+	message.SetEventScanMessageHandler(eventScanHandler)
 	message.SetEventClickMessageHandler(eventClickHandler)
 	message.SetEventSubscribeMessageHandler(eventSubscribeHandler)
 	message.SetEventUnsubscribeMessageHandler(eventUnsubscribeHandler)
