@@ -50,6 +50,12 @@ func linkMsgHandler(r *message.LinkRequest) *message.LinkResponse {
 func eventClickHandler(r *message.EventClickRequest) *message.EventClickResponse {
 	return r.NewResponse("your key:" + r.EventKey)
 }
+func eventSubscribeHandler(r *message.EventSubscribeRequest) *message.EventSubscribeResponse {
+	return r.NewResponse("your event:" + string(r.Event))
+}
+func eventUnsubscribeHandler(r *message.EventUnsubscribeRequest) *message.EventUnsubscribeResponse {
+	return r.NewResponse("your evente:" + string(r.Event))
+}
 func eventViewHandler(r *message.EventViewRequest) *message.EventViewResponse {
 	return r.NewResponse("your url:" + r.EventKey)
 }
@@ -124,6 +130,8 @@ func main() {
 
 	message.SetEventLocationMessageHandler(eventLocationHandler)
 	message.SetEventClickMessageHandler(eventClickHandler)
+	message.SetEventSubscribeMessageHandler(eventSubscribeHandler)
+	message.SetEventUnsubscribeMessageHandler(eventUnsubscribeHandler)
 	message.SetEventViewMessageHandler(eventViewHandler)
 	message.SetEventLocationSelectMessageHandler(eventLocationSelectHandler)
 	message.SetEventScancodePushMessageHandler(eventScancodePushHandler)

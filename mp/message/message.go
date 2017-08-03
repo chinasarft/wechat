@@ -265,6 +265,32 @@ func (this *MixMessage) EventClickRequestHandler(eventClickRequestI interface{})
 	return &EventClickResponse{}
 }
 
+func (this *MixMessage) GetEventSubscribeRequest() *EventSubscribeRequest {
+	eventSubscribeRequest := &EventSubscribeRequest{this.MessageHeader, this.Event}
+	return eventSubscribeRequest
+}
+
+func (this *MixMessage) EventSubscribeRequestHandler(eventSubscribeRequestI interface{}) *EventSubscribeResponse {
+	eventSubscribeRequest := eventSubscribeRequestI.(*EventSubscribeRequest)
+	if eventSubscribeMessageHandler != nil {
+		return eventSubscribeMessageHandler(eventSubscribeRequest)
+	}
+	return &EventSubscribeResponse{}
+}
+
+func (this *MixMessage) GetEventUnsubscribeRequest() *EventUnsubscribeRequest {
+	eventUnsubscribeRequest := &EventUnsubscribeRequest{this.MessageHeader, this.Event}
+	return eventUnsubscribeRequest
+}
+
+func (this *MixMessage) EventUnsubscribeRequestHandler(eventUnsubscribeRequestI interface{}) *EventUnsubscribeResponse {
+	eventUnsubscribeRequest := eventUnsubscribeRequestI.(*EventUnsubscribeRequest)
+	if eventUnsubscribeMessageHandler != nil {
+		return eventUnsubscribeMessageHandler(eventUnsubscribeRequest)
+	}
+	return &EventUnsubscribeResponse{}
+}
+
 func (this *MixMessage) GetEventViewRequest() *EventViewRequest {
 	viewRequest := &EventViewRequest{this.MessageHeader, this.Event, this.EventKey, this.MenuId}
 	return viewRequest
