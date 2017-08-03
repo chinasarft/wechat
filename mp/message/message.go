@@ -266,7 +266,7 @@ func (this *MixMessage) EventClickRequestHandler(eventClickRequestI interface{})
 }
 
 func (this *MixMessage) GetEventSubscribeRequest() *EventSubscribeRequest {
-	eventSubscribeRequest := &EventSubscribeRequest{this.MessageHeader, this.Event}
+	eventSubscribeRequest := &EventSubscribeRequest{this.MessageHeader, this.Event, this.EventKey, this.Ticket}
 	return eventSubscribeRequest
 }
 

@@ -6,7 +6,9 @@ var eventSubscribeMessageHandler EventSubscribeMessageHandler = nil
 
 type EventSubscribeRequest struct {
 	MessageHeader
-	Event EventType
+	Event    EventType
+	EventKey string
+	Ticket   string
 }
 
 type EventSubscribeResponse struct {

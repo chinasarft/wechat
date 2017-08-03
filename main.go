@@ -51,7 +51,11 @@ func eventClickHandler(r *message.EventClickRequest) *message.EventClickResponse
 	return r.NewResponse("your key:" + r.EventKey)
 }
 func eventSubscribeHandler(r *message.EventSubscribeRequest) *message.EventSubscribeResponse {
-	return r.NewResponse("your event:" + string(r.Event))
+	if r.EventKey == "" {
+		return r.NewResponse("subscribe:" + string(r.Event))
+	} else {
+		return r.NewResponse("subscribe by scan:" + string(r.Event) + r.EventKey + r.Ticket)
+	}
 }
 func eventUnsubscribeHandler(r *message.EventUnsubscribeRequest) *message.EventUnsubscribeResponse {
 	return r.NewResponse("your evente:" + string(r.Event))
