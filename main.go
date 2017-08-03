@@ -68,6 +68,9 @@ func eventScancodeWaitmsgHandler(r *message.EventScancodeWaitmsgRequest) *messag
 func eventPicSysphotoHandler(r *message.EventPicSysphotoRequest) *message.EventPicSysphotoResponse {
 	return r.NewResponse("your eps:" + strconv.Itoa(r.SendPicsInfo.Count) + " " + r.SendPicsInfo.PicList[0].PicMd5Sum)
 }
+func eventPicPhotoOrAlbumHandler(r *message.EventPicPhotoOrAlbumRequest) *message.EventPicPhotoOrAlbumResponse {
+	return r.NewResponse("your epic_photo_or_album:" + strconv.Itoa(r.SendPicsInfo.Count) + " " + r.SendPicsInfo.PicList[0].PicMd5Sum)
+}
 
 func MessageGateway(c *gin.Context) {
 	resp, err := message.HandleMessage(c.Writer, c.Request)
@@ -123,6 +126,7 @@ func main() {
 	message.SetEventScancodePushMessageHandler(eventScancodePushHandler)
 	message.SetEventScancodeWaitmsgMessageHandler(eventScancodeWaitmsgHandler)
 	message.SetEventPicSysphotoMessageHandler(eventPicSysphotoHandler)
+	message.SetEventPicPhotoOrAlbumMessageHandler(eventPicPhotoOrAlbumHandler)
 
 	engine := gin.New()
 	engine.Static("/static", "static")

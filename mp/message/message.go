@@ -343,6 +343,19 @@ func (this *MixMessage) EventPic_sysphotoRequestHandler(eventPicSysphotoRequestI
 	return &EventPicSysphotoResponse{}
 }
 
+func (this *MixMessage) GetEventPic_photo_or_albumRequest() *EventPicPhotoOrAlbumRequest {
+	eventPicPhotoOrAlbumRequest := &EventPicPhotoOrAlbumRequest{this.MessageHeader, this.Event, this.EventKey, this.SendPicsInfo}
+	return eventPicPhotoOrAlbumRequest
+}
+
+func (this *MixMessage) EventPic_photo_or_albumRequestHandler(eventPicPhotoOrAlbumRequestI interface{}) *EventPicPhotoOrAlbumResponse {
+	eventPicPhotoOrAlbumRequest := eventPicPhotoOrAlbumRequestI.(*EventPicPhotoOrAlbumRequest)
+	if eventPicPhotoOrAlbumMessageHandler != nil {
+		return eventPicPhotoOrAlbumMessageHandler(eventPicPhotoOrAlbumRequest)
+	}
+	return &EventPicPhotoOrAlbumResponse{}
+}
+
 func (this *MixMessage) GetLocationRequest() *LocationRequest {
 	locationRequest := &LocationRequest{this.MessageHeader, this.LocationX, this.LocationY, this.Scale, this.Label, this.MsgId}
 	return locationRequest
