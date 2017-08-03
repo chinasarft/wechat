@@ -343,6 +343,19 @@ func (this *MixMessage) EventPic_sysphotoRequestHandler(eventPicSysphotoRequestI
 	return &EventPicSysphotoResponse{}
 }
 
+func (this *MixMessage) GetEventPic_weixinRequest() *EventPicWeixinRequest {
+	eventPicWeixinRequest := &EventPicWeixinRequest{this.MessageHeader, this.Event, this.EventKey, this.SendPicsInfo}
+	return eventPicWeixinRequest
+}
+
+func (this *MixMessage) EventPic_weixinRequestHandler(eventPicWeixinRequestI interface{}) *EventPicWeixinResponse {
+	eventPicWeixinRequest := eventPicWeixinRequestI.(*EventPicWeixinRequest)
+	if eventPicWeixinMessageHandler != nil {
+		return eventPicWeixinMessageHandler(eventPicWeixinRequest)
+	}
+	return &EventPicWeixinResponse{}
+}
+
 func (this *MixMessage) GetEventPic_photo_or_albumRequest() *EventPicPhotoOrAlbumRequest {
 	eventPicPhotoOrAlbumRequest := &EventPicPhotoOrAlbumRequest{this.MessageHeader, this.Event, this.EventKey, this.SendPicsInfo}
 	return eventPicPhotoOrAlbumRequest
