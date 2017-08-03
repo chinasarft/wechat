@@ -61,6 +61,9 @@ func eventLocationSelectHandler(r *message.EventLocationSelectRequest) *message.
 func eventScancodePushHandler(r *message.EventScancodePushRequest) *message.EventScancodePushResponse {
 	return r.NewResponse("your esp:" + r.ScanCodeInfo.ScanType + " " + r.ScanCodeInfo.ScanResult)
 }
+func eventScancodeWaitmsgHandler(r *message.EventScancodeWaitmsgRequest) *message.EventScancodeWaitmsgResponse {
+	return r.NewResponse("your esw:" + r.ScanCodeInfo.ScanType + " " + r.ScanCodeInfo.ScanResult)
+}
 
 func MessageGateway(c *gin.Context) {
 	resp, err := message.HandleMessage(c.Writer, c.Request)
@@ -114,6 +117,7 @@ func main() {
 	message.SetEventViewMessageHandler(eventViewHandler)
 	message.SetEventLocationSelectMessageHandler(eventLocationSelectHandler)
 	message.SetEventScancodePushMessageHandler(eventScancodePushHandler)
+	message.SetEventScancodeWaitmsgMessageHandler(eventScancodeWaitmsgHandler)
 
 	engine := gin.New()
 	engine.Static("/static", "static")

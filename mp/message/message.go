@@ -317,6 +317,19 @@ func (this *MixMessage) EventScancode_pushRequestHandler(eventScancodePushReques
 	return &EventScancodePushResponse{}
 }
 
+func (this *MixMessage) GetEventScancode_waitmsgRequest() *EventScancodeWaitmsgRequest {
+	eventScancodeWaitmsgRequest := &EventScancodeWaitmsgRequest{this.MessageHeader, this.Event, this.EventKey, this.ScanCodeInfo}
+	return eventScancodeWaitmsgRequest
+}
+
+func (this *MixMessage) EventScancode_waitmsgRequestHandler(eventScancodeWaitmsgRequestI interface{}) *EventScancodeWaitmsgResponse {
+	eventScancodeWaitmsgRequest := eventScancodeWaitmsgRequestI.(*EventScancodeWaitmsgRequest)
+	if eventScancodeWaitmsgMessageHandler != nil {
+		return eventScancodeWaitmsgMessageHandler(eventScancodeWaitmsgRequest)
+	}
+	return &EventScancodeWaitmsgResponse{}
+}
+
 func (this *MixMessage) GetLocationRequest() *LocationRequest {
 	locationRequest := &LocationRequest{this.MessageHeader, this.LocationX, this.LocationY, this.Scale, this.Label, this.MsgId}
 	return locationRequest
