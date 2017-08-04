@@ -128,6 +128,11 @@ func main() {
 		return
 	case "getUsers":
 		getSubscribeUserList()
+	case "getTags":
+		getTagsList()
+		return
+	case "addTags":
+		addTagsList()
 		return
 	}
 
@@ -163,13 +168,36 @@ func main() {
 	startServe(engine)
 }
 
+func addTagsList() {
+	tag, err := user.CreateTag("测试tag")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(tag)
+}
+
+func getTagsList() {
+	tags, err := user.GetTags()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for i := 0; i < len(tags); i++ {
+		fmt.Println(tags[i])
+	}
+}
+
 func getSubscribeUserList() {
 	users, err := user.GetUserList("")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(users.Data.OpenIdList[0], users)
+	for i := 0; i < len(users.Data.OpenIdList); i++ {
+		fmt.Println(users.Data.OpenIdList[0], users)
+	}
+
 }
 
 func deleteConditionalMenu() {
