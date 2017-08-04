@@ -60,6 +60,93 @@ func CreateTag(tagName string) (*Tag, error) {
 	return result.Tag, nil
 }
 
+func UpdateTag(tagName string, id int) error {
+	accessToken := token.GetAccessToken()
+	url := "https://api.weixin.qq.com/cgi-bin/tags/update?access_token=" + accessToken
+
+	reqTag := &struct {
+		Tag Tag `json:"tag"`
+	}{}
+	reqTag.Tag.Name = tagName
+	reqTag.Tag.Id = id
+
+	reqByte, err := json.MarshalIndent(reqTag, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewReader(reqByte))
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+	if err != nil {
+		return err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	result := &struct {
+		ErrCode int    `josn:"errcode"`
+		ErrMsg  string `json:"errmsg"`
+	}{}
+	err = json.Unmarshal(body, result)
+	if err != nil {
+		return err
+	}
+
+	if result.ErrCode != 0 {
+		return fmt.Errorf("%d:%s", result.ErrCode, result.ErrMsg)
+	}
+
+	return nil
+}
+
+func DeleteTag(id int) error {
+	accessToken := token.GetAccessToken()
+	url := "https://api.weixin.qq.com/cgi-bin/tags/delete?access_token=" + accessToken
+
+	reqTag := &struct {
+		Tag Tag `json:"tag"`
+	}{}
+	reqTag.Tag.Id = id
+
+	reqByte, err := json.MarshalIndent(reqTag, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewReader(reqByte))
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+	if err != nil {
+		return err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	result := &struct {
+		ErrCode int    `josn:"errcode"`
+		ErrMsg  string `json:"errmsg"`
+	}{}
+	err = json.Unmarshal(body, result)
+	if err != nil {
+		return err
+	}
+
+	if result.ErrCode != 0 {
+		return fmt.Errorf("%d:%s", result.ErrCode, result.ErrMsg)
+	}
+
+	return nil
+}
+
 func GetTags() ([]*Tag, error) {
 	accessToken := token.GetAccessToken()
 	url := "https://api.weixin.qq.com/cgi-bin/tags/get?access_token=" + accessToken

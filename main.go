@@ -128,11 +128,18 @@ func main() {
 		return
 	case "getUsers":
 		getSubscribeUserList()
+		return
 	case "getTags":
 		getTagsList()
 		return
 	case "addTags":
 		addTagsList()
+		return
+	case "upTags":
+		updateTag()
+		return
+	case "delTags":
+		deleteTag()
 		return
 	}
 
@@ -166,6 +173,24 @@ func main() {
 		weChatCoreGroupR.POST("/connect", MessageGateway)
 	}
 	startServe(engine)
+}
+
+func deleteTag() {
+	err := user.DeleteTag(100)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("delete tag ok")
+}
+
+func updateTag() {
+	err := user.UpdateTag("测试tag1", 100)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("update tag ok")
 }
 
 func addTagsList() {
