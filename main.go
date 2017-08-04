@@ -10,6 +10,7 @@ import (
 	"github.com/chinasarft/wechat/mp/menu"
 	"github.com/chinasarft/wechat/mp/message"
 	"github.com/chinasarft/wechat/mp/token"
+	"github.com/chinasarft/wechat/mp/user"
 
 	"github.com/chinasarft/wechat/lib/flags"
 	"github.com/gin-gonic/gin"
@@ -125,6 +126,9 @@ func main() {
 	case "dcMenu":
 		deleteConditionalMenu()
 		return
+	case "getUsers":
+		getSubscribeUserList()
+		return
 	}
 
 	message.SetTextMessageHandler(textMsgHandler)
@@ -157,6 +161,15 @@ func main() {
 		weChatCoreGroupR.POST("/connect", MessageGateway)
 	}
 	startServe(engine)
+}
+
+func getSubscribeUserList() {
+	users, err := user.GetUserList("")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(users.Data.OpenIdList[0], users)
 }
 
 func deleteConditionalMenu() {
