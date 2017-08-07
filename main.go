@@ -185,7 +185,7 @@ func deleteTag() {
 }
 
 func updateTag() {
-	err := user.UpdateTag("测试tag1", 100)
+	err := user.UpdateTag("测试tag1", 101)
 	if err != nil {
 		fmt.Println(err)
 		return
