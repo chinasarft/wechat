@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/chinasarft/wechat/mp/menu"
@@ -98,6 +99,60 @@ func MessageGateway(c *gin.Context) {
 	c.Data(http.StatusOK, "", resp)
 }
 
+func oauthRedirect(c *gin.Context) {
+	fmt.Println("oauth redirect")
+	redirectUrl := "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + token.GetAppId()
+	redirectUrl += "&redirect_uri="
+	redirectUrl += url.QueryEscape("http://ec2-13-112-47-201.ap-northeast-1.compute.amazonaws.com/test/oauth/ok")
+	redirectUrl += "&response_type=code"
+	redirectUrl += "&scope=snsapi_base"
+	redirectUrl += "&state=s123#wechat_redirect"
+	c.Redirect(http.StatusFound, redirectUrl)
+	//"https://ohorize?appid=APPID&redirect_uri=REDIRECT_URI&response_type=code&scope=SCOPE&state=STATE")
+}
+
+func oauthRedirect2(c *gin.Context) {
+	fmt.Println("oauth redirect2")
+	oauthUrl := "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + token.GetAppId()
+	oauthUrl += "&redirect_uri="
+	oauthUrl += url.QueryEscape("http://ec2-13-112-47-201.ap-northeast-1.compute.amazonaws.com/test/oauth/ok")
+	oauthUrl += "&response_type=code"
+	oauthUrl += "&scope=snsapi_userinfo"
+	oauthUrl += "&state=s123#wechat_redirect"
+
+	pre := `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <title>WeUI</title>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/weui/1.1.2/style/weui.min.css">
+</head>
+<body ontouchstart>
+  <div>
+  <p>
+  获取你的公开信息(昵称等)
+  </p>
+  </div>
+  <a href="`
+
+	last := `" class="weui-btn weui-btn_primary">授权</a>
+</body>
+</html>`
+	c.Data(http.StatusOK, "text/html", []byte(pre+oauthUrl+last))
+	//c.String(http.StatusOK, pre+oauthUrl+last)
+	//"https://ohorize?appid=APPID&redirect_uri=REDIRECT_URI&response_type=code&scope=SCOPE&state=STATE")
+}
+
+func oauthOk(c *gin.Context) {
+	if code := c.Query("code"); code != "" {
+		fmt.Println("code:----->", code)
+	} else {
+		fmt.Println("----> no code")
+	}
+	c.Data(http.StatusOK, "", nil)
+}
+
 func main() {
 	token.Init()
 	fmt.Println(flags.GetTest())
@@ -167,6 +222,12 @@ func main() {
 
 	engine := gin.New()
 	engine.Static("/static", "static")
+	testGroupR := engine.Group("/test")
+	{
+		testGroupR.GET("/redirect/oauth", oauthRedirect)
+		testGroupR.GET("/redirect/oauth2", oauthRedirect2)
+		testGroupR.GET("/oauth/ok", oauthOk)
+	}
 	weChatCoreGroupR := engine.Group("/wechat")
 	{
 		weChatCoreGroupR.GET("/connect", ValidateWechatServer)
@@ -268,6 +329,10 @@ func freshMenu() {
 	menuButton.AddSubButton(scpButton3_2)
 	viewButton3_3 := menu.NewViewButton("跳转3_3", "http://ec2-13-112-47-201.ap-northeast-1.compute.amazonaws.com/static/a.html")
 	menuButton.AddSubButton(viewButton3_3)
+	viewButton3_4 := menu.NewViewButton("跳转3_4", "http://ec2-13-112-47-201.ap-northeast-1.compute.amazonaws.com/test/redirect/oauth")
+	menuButton.AddSubButton(viewButton3_4)
+	viewButton3_5 := menu.NewViewButton("跳转3_5", "http://ec2-13-112-47-201.ap-northeast-1.compute.amazonaws.com/test/redirect/oauth2")
+	menuButton.AddSubButton(viewButton3_5)
 
 	m.AddMenuButton(menuButton)
 
